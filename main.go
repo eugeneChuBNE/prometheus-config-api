@@ -9,12 +9,10 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-// Config represents the structure of the Prometheus configuration file.
 type Config struct {
 	ScrapeConfigs []ScrapeConfig `yaml:"scrape_configs"`
 }
 
-// ScrapeConfig represents a scrape configuration in the Prometheus configuration.
 type ScrapeConfig struct {
 	JobName        string              `yaml:"job_name"`
 	StaticConfigs  []StaticConfig      `yaml:"static_configs"`
@@ -25,22 +23,24 @@ type ScrapeConfig struct {
 	RelabelConfigs []RelabelConfig     `yaml:"relabel_configs,omitempty"`
 }
 
-// StaticConfig represents the static configuration for targets in a scrape configuration.
 type StaticConfig struct {
 	Targets []string `yaml:"targets"`
 }
 
-// RelabelConfig represents the relabel configuration in a scrape configuration.
 type RelabelConfig struct {
 	SourceLabels []string `yaml:"source_labels,omitempty"`
 	TargetLabel  string   `yaml:"target_label,omitempty"`
 	Replacement  string   `yaml:"replacement,omitempty"`
 }
 
-// Job represents the simplified structure to be returned by the API, containing only the job name and static configurations.
 type Job struct {
 	JobName       string         `json:"job_name"`
 	StaticConfigs []StaticConfig `json:"static_configs"`
+}
+
+type AddJobRequest struct {
+	JobName   string `json:"job_name"`
+	IPAddress string `json:"ip_address"`
 }
 
 var config Config
@@ -48,17 +48,16 @@ var config Config
 func main() {
 	router := gin.Default()
 
-	// Define the endpoint to list jobs
+	// Define endpoints
 	router.GET("/jobs", listJobs)
+	router.POST("/jobs", addJob)
 
-	// Load the Prometheus configuration from the YAML file
+	// Load the Prometheus config from the YAML file
 	loadConfig()
 
-	// Start the HTTP server on port 8080
 	router.Run(":8080")
 }
 
-// loadConfig reads the Prometheus configuration from prometheus.yml and unmarshals it into the config variable.
 func loadConfig() {
 	data, err := ioutil.ReadFile("prometheus.yml")
 	if err != nil {
@@ -66,6 +65,19 @@ func loadConfig() {
 	}
 
 	err = yaml.Unmarshal(data, &config)
+	if err != nil {
+		log.Fatalf("error: %v", err)
+	}
+}
+
+// saveConfig writes the current configuration to prometheus.yml.
+func saveConfig() {
+	data, err := yaml.Marshal(&config)
+	if err != nil {
+		log.Fatalf("error: %v", err)
+	}
+
+	err = ioutil.WriteFile("prometheus.yml", data, 0644)
 	if err != nil {
 		log.Fatalf("error: %v", err)
 	}
@@ -88,4 +100,42 @@ func listJobs(c *gin.Context) {
 
 	// Return the filtered jobs as a JSON response
 	c.JSON(http.StatusOK, filteredJobs)
+}
+
+// addJob handles the POST /jobs request to add a new job.
+func addJob(c *gin.Context) {
+	var newJobRequest AddJobRequest
+	if err := c.BindJSON(&newJobRequest); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Check IP address if it already exists
+	for _, job := range config.ScrapeConfigs {
+		for _, staticConfig := range job.StaticConfigs {
+			for _, target := range staticConfig.Targets {
+				if target == newJobRequest.IPAddress+":26" || target == newJobRequest.IPAddress+":27" {
+					c.JSON(http.StatusConflict, gin.H{"error": "job existed"})
+					return
+				}
+			}
+		}
+	}
+
+	// Add the new job
+	newScrapeConfig := ScrapeConfig{
+		JobName: newJobRequest.JobName,
+		StaticConfigs: []StaticConfig{
+			{
+				Targets: []string{
+					newJobRequest.IPAddress + ":26",
+					newJobRequest.IPAddress + ":27",
+				},
+			},
+		},
+	}
+
+	config.ScrapeConfigs = append(config.ScrapeConfigs, newScrapeConfig)
+	saveConfig()
+	c.JSON(http.StatusOK, gin.H{"status": "job added"})
 }
