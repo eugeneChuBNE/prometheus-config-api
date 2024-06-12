@@ -1,0 +1,329 @@
+# my global config
+global:
+  scrape_interval: 15s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+  evaluation_interval: 15s # Evaluate rules every 15 seconds. The default is every 1 minute.
+  # scrape_timeout is set to the global default (10s).
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          # - alertmanager:9093
+
+# Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+
+# A scrape configuration containing exactly one endpoint to scrape:
+# Here it's Prometheus itself.
+scrape_configs:
+  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+  - job_name: "prometheus"
+
+    # metrics_path defaults to '/metrics'
+    # scheme defaults to 'http'.
+
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  - job_name: "nsoblue"
+    static_configs:
+      - targets: ["14.225.219.135:9100", "14.225.219.135:27"]
+
+  - job_name: "hungapp"
+    static_configs:
+      - targets: ["103.90.224.31:8404", "103.90.224.31:9100"]
+
+  - job_name: "jx-backend"
+    static_configs:
+      - targets: ["222.255.214.32:9100"]
+
+  - job_name: "gaming-heohong"
+    static_configs:
+      - targets: ["14.225.208.112:26", "14.225.208.112:27"]
+
+  - job_name: "fw.thienlongcomo2-85151"
+    static_configs:
+      - targets: ["14.225.213.25:26", "14.225.213.25:27"]
+
+
+  - job_name: "fwthaythe.vn-82819"
+    static_configs:
+      - targets: ["14.225.213.106:26", "14.225.213.106:27"]
+
+  - job_name: "fw-quyuus.vn-81405"
+    static_configs:
+      - targets: ["14.225.213.186:26", "14.225.213.186:27"]
+
+  - job_name: "fw.mu-quyetchien4.com"
+    static_configs:
+      - targets: ["103.90.226.58:26", "103.90.226.58:27"]
+
+  - job_name: "production.fw1.trutien.vn-1433"
+    static_configs:
+      - targets: ["14.225.202.101:26", "14.225.202.101:27"]
+
+  - job_name: "fw4.sv.vn"
+    static_configs:
+      - targets: ["14.225.208.17:26", "14.225.208.17:27"]
+
+  - job_name: "fww222.svv6-70182"
+    static_configs:
+      - targets: ["14.225.203.95:26", "14.225.203.95:27"]
+
+  - job_name: "fw1.thienlongcomo-84904"
+    static_configs:
+      - targets: ["14.225.203.75:26", "14.225.203.75:27"]
+        
+  - job_name: "fw2.sv.vn-85123"
+    static_configs:
+      - targets: ["14.225.202.106:26", "14.225.202.106:27"]
+
+  - job_name: "production.fw4.anhtuang.vn"
+    static_configs:
+      - targets: ["14.225.202.102:26", "14.225.202.102:27"]
+
+  - job_name: "production.fw.server.muss6-83906-11572"
+    static_configs:
+      - targets: ["14.225.202.103:26", "14.225.202.103:27"]
+
+  - job_name: "fw1.ninja.vn"
+    static_configs:
+      - targets: ["14.225.202.104:26", "14.225.202.104:27"]
+
+  - job_name: "02fw.jxthaiduong-62927-62927-62927"
+    static_configs:
+      - targets: ["14.225.208.14:26", "14.225.208.14:27"]
+
+  - job_name: "production.aquan.fw1.vn-82444-11732"
+    static_configs:
+      - targets: ["14.225.202.105:26", "14.225.202.105:27"]
+
+  - job_name: "production.fw-quyuus.vn-81405"
+    static_configs:
+      - targets: ["14.225.213.186:26", "14.225.213.186:27"]
+
+  - job_name: "14.225.202.106"
+    static_configs:
+      - targets: ["14.225.202.106:26", "14.225.202.106:27"]
+
+  - job_name: "fw-update-70243-70243"
+    static_configs:
+      - targets: ["14.225.209.64:26", "14.225.209.64:27"]
+
+  - job_name: "dublin-traceroute"
+    scrape_interval: 60s
+    scrape_timeout: 30s
+    static_configs:
+      - targets: ["14.225.208.151:9102"]
+
+
+  - job_name: 'blackbox-tcp'
+    scrape_timeout: 15s
+    scrape_interval: 15s
+    metrics_path: /probe
+    params:
+      module: [tcp_connect]
+    static_configs:
+     - targets:
+        - 14.225.208.112:5622
+        - 14.225.208.112:6660
+        - 14.225.208.112:6661
+        - 14.225.208.112:6662
+    relabel_configs:
+     - source_labels: [__address__]
+       target_label: __param_target
+     - source_labels: [__param_target]
+       target_label: instance
+     - target_label: __address__
+       replacement: 14.225.206.15:9115
+
+  - job_name: 'vnpt-marketing-pc'
+    scrape_timeout: 15s
+    scrape_interval: 15s
+    metrics_path: /probe
+    params:
+      module: [tcp_connect]
+    static_configs:
+     - targets:
+        - 14.225.208.112:5622
+        - 14.225.208.112:6660
+        - 14.225.208.112:6661
+        - 14.225.208.112:6662
+    relabel_configs:
+     - source_labels: [__address__]
+       target_label: __param_target
+     - source_labels: [__param_target]
+       target_label: instance
+     - target_label: __address__
+       replacement: 10.8.0.2:9115
+
+  - job_name: 'viettel-blackbox-vps'
+    scrape_timeout: 15s
+    scrape_interval: 15s
+    metrics_path: /probe
+    params:
+      module: [tcp_connect]
+    static_configs:
+     - targets:
+        - 14.225.208.112:5622
+        - 14.225.208.112:6660
+        - 14.225.208.112:6661
+        - 14.225.208.112:6662
+    relabel_configs:
+     - source_labels: [__address__]
+       target_label: __param_target
+     - source_labels: [__param_target]
+       target_label: instance
+     - target_label: __address__
+       replacement: 171.244.18.55:9115
+
+  - job_name: 'viettel-blackbox-vps-icmp'
+    scrape_timeout: 15s
+    scrape_interval: 15s
+    metrics_path: /probe
+    params:
+      module: [icmp]
+    static_configs:
+     - targets:
+        - 171.244.18.55
+        - 113.171.49.169
+        - 113.171.49.57
+        - 113.171.49.41
+        - 113.171.48.197
+        - 113.171.49.97
+        - 113.171.49.185
+        - 113.171.49.93
+        - 113.171.49.5
+        - 113.171.49.65
+        - 113.171.49.81
+        - 103.90.224.1
+        - 103.90.225.1
+        - 103.90.226.1
+        - 103.200.23.1
+        - 221.132.33.129
+        - 222.255.117.193
+        - 222.255.119.1
+        - 14.225.192.1
+        - 14.225.210.1
+        - 222.255.238.129
+        - 14.225.254.1
+        - 14.225.255.1
+        - 103.90.227.1
+        - 103.200.20.1
+        - 103.200.21.1
+        - 103.200.22.1
+        - 14.225.198.1
+        - 14.225.212.1
+        - 222.255.214.1
+        - 14.225.217.1
+        - 14.225.253.1
+        - 14.225.204.1
+        - 14.225.206.1
+        - 14.225.218.1
+        - 14.225.220.1
+        - 14.225.250.129
+        - 14.225.208.1
+        - 14.225.213.1
+        - 14.225.203.1
+        - 14.225.219.1
+        - 14.225.202.1
+        - 14.225.218.18
+        - 103.90.224.4
+        - 103.90.225.22
+        - 103.90.226.5
+        - 103.200.23.59
+        - 103.90.227.19
+        - 103.200.20.11
+        - 103.200.21.12
+        - 103.200.22.5
+        - 14.225.209.62
+        - 14.225.213.4
+        - 14.225.203.10
+        - 222.255.214.94
+        - 14.225.219.4
+        - 14.225.220.252
+        - 14.225.202.4
+    relabel_configs:
+     - source_labels: [__address__]
+       target_label: __param_target
+     - source_labels: [__param_target]
+       target_label: instance
+     - target_label: __address__
+       replacement: 171.244.18.55:9115
+
+  - job_name: 'vnpt-marketing-pc-icmp'
+    scrape_timeout: 15s
+    scrape_interval: 15s
+    metrics_path: /probe
+    params:
+      module: [icmp]
+    static_configs:
+     - targets:
+        - 171.244.18.55
+        - 113.171.49.169
+        - 113.171.49.57
+        - 113.171.49.41
+        - 113.171.48.197
+        - 113.171.49.97
+        - 113.171.49.185
+        - 113.171.49.93
+        - 113.171.49.5
+        - 113.171.49.65
+        - 113.171.49.81
+        - 103.90.224.1
+        - 103.90.225.1
+        - 103.90.226.1
+        - 103.200.23.1
+        - 221.132.33.129
+        - 222.255.117.193
+        - 222.255.119.1
+        - 14.225.192.1
+        - 14.225.210.1
+        - 222.255.238.129
+        - 14.225.254.1
+        - 14.225.255.1
+        - 103.90.227.1
+        - 103.200.20.1
+        - 103.200.21.1
+        - 103.200.22.1
+        - 14.225.198.1
+        - 14.225.212.1
+        - 222.255.214.1
+        - 14.225.217.1
+        - 14.225.253.1
+        - 14.225.204.1
+        - 14.225.206.1
+        - 14.225.218.1
+        - 14.225.220.1
+        - 14.225.250.129
+        - 14.225.208.1
+        - 14.225.213.1
+        - 14.225.203.1
+        - 14.225.219.1
+        - 14.225.202.1
+        - 14.225.218.18
+        - 103.90.224.4
+        - 103.90.225.22
+        - 103.90.226.5
+        - 103.200.23.59
+        - 103.90.227.19
+        - 103.200.20.11
+        - 103.200.21.12
+        - 103.200.22.5
+        - 14.225.209.62
+        - 14.225.213.4
+        - 14.225.203.10
+        - 222.255.214.94
+        - 14.225.219.4
+        - 14.225.220.252
+        - 14.225.202.4
+    relabel_configs:
+     - source_labels: [__address__]
+       target_label: __param_target
+     - source_labels: [__param_target]
+       target_label: instance
+     - target_label: __address__
+       replacement: 10.8.0.2:9115
