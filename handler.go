@@ -31,12 +31,20 @@ func addJob(c *gin.Context) {
 		return
 	}
 
+	// Check if the job name already exists
+	for _, job := range config.ScrapeConfigs {
+		if job.JobName == newJobRequest.JobName {
+			c.JSON(http.StatusConflict, gin.H{"error": "job name already exists"})
+			return
+		}
+	}
+
 	// Check if the IP address already exists in any job
 	for _, job := range config.ScrapeConfigs {
 		for _, staticConfig := range job.StaticConfigs {
 			for _, target := range staticConfig.Targets {
 				if target == newJobRequest.IPAddress+":26" || target == newJobRequest.IPAddress+":27" {
-					c.JSON(http.StatusConflict, gin.H{"error": "job existed"})
+					c.JSON(http.StatusConflict, gin.H{"error": "job with this IP address already exists"})
 					return
 				}
 			}

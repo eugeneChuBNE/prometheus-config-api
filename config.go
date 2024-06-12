@@ -3,7 +3,9 @@ package main
 import (
 	"io/ioutil"
 	"log"
+	"os"
 
+	"github.com/joho/godotenv"
 	"gopkg.in/yaml.v2"
 )
 
@@ -14,9 +16,22 @@ type Config struct {
 
 var config Config
 
-// loadConfig reads the Prometheus configuration from prometheus.yml and unmarshals it into the config variable.
+// init loads the environment variables from the .env file.
+func init() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatalf("Error loading .env file")
+	}
+}
+
+// loadConfig reads the Prometheus configuration from the file specified in the environment variable and unmarshals it into the config variable.
 func loadConfig() {
-	data, err := ioutil.ReadFile("prometheus.yml")
+	configPath := os.Getenv("PROMETHEUS_CONFIG_PATH")
+	if configPath == "" {
+		log.Fatalf("PROMETHEUS_CONFIG_PATH not set in .env file")
+	}
+
+	data, err := ioutil.ReadFile(configPath)
 	if err != nil {
 		log.Fatalf("error: %v", err)
 	}
@@ -27,14 +42,19 @@ func loadConfig() {
 	}
 }
 
-// saveConfig writes the current configuration to prometheus.yml.
+// saveConfig writes the current configuration to the file specified in the environment variable.
 func saveConfig() {
+	configPath := os.Getenv("PROMETHEUS_CONFIG_PATH")
+	if configPath == "" {
+		log.Fatalf("PROMETHEUS_CONFIG_PATH not set in .env file")
+	}
+
 	data, err := yaml.Marshal(&config)
 	if err != nil {
 		log.Fatalf("error: %v", err)
 	}
 
-	err = ioutil.WriteFile("prometheus.yml", data, 0644)
+	err = ioutil.WriteFile(configPath, data, 0644)
 	if err != nil {
 		log.Fatalf("error: %v", err)
 	}

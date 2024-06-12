@@ -32,13 +32,13 @@ This project provides APIs to list all jobs in JSON format, as well as add or re
 ### list all jobs 
 
 ```sh
-    curl -X GET http://localhost:8080/jobs
+    curl -X GET http://localhost:6969/jobs
 ```
 
 ### Add a job 
 
 ```sh
-    curl -X POST http://localhost:8080/jobs -H "Content-Type: application/json" -d '{"job_name": "newjob", "ip_address": "11.111.111.111"}'
+    curl -X POST http://localhost:6969/jobs -H "Content-Type: application/json" -d '{"job_name": "newjob", "ip_address": "11.111.111.111"}'
 ```
 
 Run this twice if you want to see what happen if job already exists
@@ -46,5 +46,5 @@ Run this twice if you want to see what happen if job already exists
 ### remove a job 
 
 ```sh
-    curl -X DELETE http://localhost:8080/jobs/newjob
+    curl -X DELETE http://localhost:6969/jobs/newjob
 ```
