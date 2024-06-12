@@ -48,16 +48,18 @@ var config Config
 func main() {
 	router := gin.Default()
 
-	// Define endpoints
+	// Define the endpoints
 	router.GET("/jobs", listJobs)
 	router.POST("/jobs", addJob)
+	router.DELETE("/jobs/:job_name", removeJob)
 
-	// Load the Prometheus config from the YAML file
+	// Load the Prometheus configuration from the YAML file
 	loadConfig()
 
 	router.Run(":8080")
 }
 
+// read Prometheus configuration from prometheus.yml and unmarshals it into the config variable.
 func loadConfig() {
 	data, err := ioutil.ReadFile("prometheus.yml")
 	if err != nil {
@@ -83,7 +85,6 @@ func saveConfig() {
 	}
 }
 
-// listJobs handles the GET /jobs request and returns the filtered list of jobs in JSON format.
 func listJobs(c *gin.Context) {
 	var filteredJobs []Job
 	for i, job := range config.ScrapeConfigs {
@@ -102,7 +103,6 @@ func listJobs(c *gin.Context) {
 	c.JSON(http.StatusOK, filteredJobs)
 }
 
-// addJob handles the POST /jobs request to add a new job.
 func addJob(c *gin.Context) {
 	var newJobRequest AddJobRequest
 	if err := c.BindJSON(&newJobRequest); err != nil {
@@ -110,7 +110,7 @@ func addJob(c *gin.Context) {
 		return
 	}
 
-	// Check IP address if it already exists
+	// Check if the IP address already exists in any job
 	for _, job := range config.ScrapeConfigs {
 		for _, staticConfig := range job.StaticConfigs {
 			for _, target := range staticConfig.Targets {
@@ -122,7 +122,7 @@ func addJob(c *gin.Context) {
 		}
 	}
 
-	// Add the new job
+	// Add new job
 	newScrapeConfig := ScrapeConfig{
 		JobName: newJobRequest.JobName,
 		StaticConfigs: []StaticConfig{
@@ -138,4 +138,18 @@ func addJob(c *gin.Context) {
 	config.ScrapeConfigs = append(config.ScrapeConfigs, newScrapeConfig)
 	saveConfig()
 	c.JSON(http.StatusOK, gin.H{"status": "job added"})
+}
+
+func removeJob(c *gin.Context) {
+	jobName := c.Param("job_name")
+	for i, job := range config.ScrapeConfigs {
+		if job.JobName == jobName {
+			// Remove the job from the list
+			config.ScrapeConfigs = append(config.ScrapeConfigs[:i], config.ScrapeConfigs[i+1:]...)
+			saveConfig()
+			c.JSON(http.StatusOK, gin.H{"status": "job removed"})
+			return
+		}
+	}
+	c.JSON(http.StatusNotFound, gin.H{"error": "job not found"})
 }
