@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"io/ioutil"
 	"log"
 	"os"
@@ -20,42 +21,50 @@ var config Config
 func init() {
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatalf("Error loading .env file")
+		log.Printf("Error loading .env file")
 	}
 }
 
 // loadConfig reads the Prometheus configuration from the file specified in the environment variable and unmarshals it into the config variable.
-func loadConfig() {
+func loadConfig() error {
 	configPath := os.Getenv("PROMETHEUS_CONFIG_PATH")
 	if configPath == "" {
-		log.Fatalf("PROMETHEUS_CONFIG_PATH not set in .env file")
+		log.Printf("PROMETHEUS_CONFIG_PATH not set in .env file")
+		return errors.New("PROMETHEUS_CONFIG_PATH not set in .env file")
 	}
 
 	data, err := ioutil.ReadFile(configPath)
 	if err != nil {
-		log.Fatalf("error: %v", err)
+		log.Printf("error: %v", err)
+		return err
 	}
 
 	err = yaml.Unmarshal(data, &config)
 	if err != nil {
-		log.Fatalf("error: %v", err)
+		log.Printf("error: %v", err)
+		return err
 	}
+	return nil
 }
 
 // saveConfig writes the current configuration to the file specified in the environment variable.
-func saveConfig() {
+func saveConfig() error {
 	configPath := os.Getenv("PROMETHEUS_CONFIG_PATH")
 	if configPath == "" {
-		log.Fatalf("PROMETHEUS_CONFIG_PATH not set in .env file")
+		log.Printf("PROMETHEUS_CONFIG_PATH not set in .env file")
+		return errors.New("PROMETHEUS_CONFIG_PATH not set in .env file")
 	}
 
 	data, err := yaml.Marshal(&config)
 	if err != nil {
-		log.Fatalf("error: %v", err)
+		log.Printf("error: %v", err)
+		return err
 	}
 
 	err = ioutil.WriteFile(configPath, data, 0644)
 	if err != nil {
-		log.Fatalf("error: %v", err)
+		log.Printf("error: %v", err)
+		return err
 	}
+	return nil
 }

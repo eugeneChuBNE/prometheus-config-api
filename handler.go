@@ -7,7 +7,10 @@ import (
 )
 
 func listJobs(c *gin.Context) {
-	loadConfig()
+	if err := loadConfig(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": "Failed to load configuration", "data": nil})
+		return
+	}
 	var filteredJobs []Job
 	for i, job := range config.ScrapeConfigs {
 		// Skip the first job and any jobs with additional configurations
@@ -26,7 +29,10 @@ func listJobs(c *gin.Context) {
 }
 
 func addJob(c *gin.Context) {
-	loadConfig()
+	if err := loadConfig(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": "Failed to load configuration", "data": nil})
+		return
+	}
 	var newJobRequest AddJobRequest
 	if err := c.BindJSON(&newJobRequest); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"status": "error", "message": "Invalid request body", "data": nil})
@@ -67,7 +73,10 @@ func addJob(c *gin.Context) {
 	}
 
 	config.ScrapeConfigs = append(config.ScrapeConfigs, newScrapeConfig)
-	saveConfig()
+	if err := saveConfig(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": "Failed to save configuration", "data": nil})
+		return
+	}
 
 	_, err := executeCommand("/usr/bin/docker container restart prometheus_prometheus_1")
 	if err != nil {
@@ -89,13 +98,19 @@ func addJob(c *gin.Context) {
 }
 
 func removeJob(c *gin.Context) {
-	loadConfig()
+	if err := loadConfig(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": "Failed to load configuration", "data": nil})
+		return
+	}
 	jobName := c.Param("job_name")
 	for i, job := range config.ScrapeConfigs {
 		if job.JobName == jobName {
 			// Remove the job from the list
 			config.ScrapeConfigs = append(config.ScrapeConfigs[:i], config.ScrapeConfigs[i+1:]...)
-			saveConfig()
+			if err := saveConfig(); err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": "Failed to save configuration", "data": nil})
+				return
+			}
 
 			_, err := executeCommand("docker container restart prometheus_prometheus_1")
 			if err != nil {
