@@ -3,10 +3,17 @@ package main
 import (
 	"log"
 	"os"
+	"os/exec"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
+
+func executeCommand(command string, args ...string) (string, error) {
+	cmd := exec.Command(command, args...)
+	output, err := cmd.CombinedOutput()
+	return string(output), err
+}
 
 func main() {
 	// Load environment variables from .env file

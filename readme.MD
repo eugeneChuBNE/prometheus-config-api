@@ -3,48 +3,74 @@
 ## Table of Contents
 
 - [Features](#features)
-- [API Endppoints](#api-endpoints)
+- [API Endpoints](#api-endpoints)
 - [Example curls](#example-curls)
 
 ## Features
 
-This project provides APIs to list all jobs in JSON format, as well as add or remove a job
+This project provides APIs to list all jobs in JSON format, as well as add or remove a job.
 
-## API Endpoints:
+## API Endpoints
 
 ### List All Jobs
 
 **URL**: `/jobs`  
-**Method**: `GET`
+**Method**: `GET`  
+**Description**: Retrieves a list of all jobs in JSON format.
+
+**Request:**
+None
+
+**Response:**
+```json
+[
+  {
+    "job_name": "job1",
+    "ip_address": "11.111.111.111"
+  },
+  {
+    "job_name": "job2",
+    "ip_address": "22.222.222.222"
+  }
+]
+```
 
 ### Add a Job
 
 **URL**: `/jobs`  
-**Method**: `POST`
+**Method**: `POST`  
+**Description**: Adds a new job. Requires job_name and ip_address in the request body.
+
+**Request:**
+```json
+
+{
+  "job_name": "newjob",
+  "ip_address": "11.111.111.111"
+}
+```
+
+**Response:**
+```json
+{
+  "status": "ok",
+  "message": "Job added successfully"
+}
+```
 
 ### Remove a Job
 
 **URL**: `/jobs/:job_name`  
-**Method**: `DELETE`
+**Method**: `DELETE`  
+**Description**: Removes a job specified by job_name.
 
-## Example curls
+**Request:**
+none
 
-### list all jobs 
-
-```sh
-    curl -X GET http://localhost:6969/jobs
-```
-
-### Add a job 
-
-```sh
-    curl -X POST http://localhost:6969/jobs -H "Content-Type: application/json" -d '{"job_name": "newjob", "ip_address": "11.111.111.111"}'
-```
-
-Run this twice if you want to see what happen if job already exists
-
-### remove a job 
-
-```sh
-    curl -X DELETE http://localhost:6969/jobs/newjob
+**Response:**
+```json
+{
+  "status": "ok",
+  "message": "Job removed successfully"
+}
 ```

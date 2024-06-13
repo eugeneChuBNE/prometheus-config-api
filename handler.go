@@ -7,6 +7,7 @@ import (
 )
 
 func listJobs(c *gin.Context) {
+	loadConfig()
 	var filteredJobs []Job
 	for i, job := range config.ScrapeConfigs {
 		// Skip the first job and any jobs with additional configurations
@@ -25,6 +26,7 @@ func listJobs(c *gin.Context) {
 }
 
 func addJob(c *gin.Context) {
+	loadConfig()
 	var newJobRequest AddJobRequest
 	if err := c.BindJSON(&newJobRequest); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -65,20 +67,25 @@ func addJob(c *gin.Context) {
 	}
 
 	config.ScrapeConfigs = append(config.ScrapeConfigs, newScrapeConfig)
+
 	saveConfig()
+	executeCommand("docker container restart prometheus_prometheus_1")
 	c.JSON(http.StatusOK, gin.H{"status": "job added"})
 }
 
 func removeJob(c *gin.Context) {
+	loadConfig()
 	jobName := c.Param("job_name")
 	for i, job := range config.ScrapeConfigs {
 		if job.JobName == jobName {
 			// Remove the job from the list
 			config.ScrapeConfigs = append(config.ScrapeConfigs[:i], config.ScrapeConfigs[i+1:]...)
 			saveConfig()
+			executeCommand("docker container restart prometheus_prometheus_1")
 			c.JSON(http.StatusOK, gin.H{"status": "job removed"})
 			return
 		}
 	}
 	c.JSON(http.StatusNotFound, gin.H{"error": "job not found"})
+
 }
