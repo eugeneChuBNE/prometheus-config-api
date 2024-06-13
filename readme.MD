@@ -22,20 +22,47 @@ This project provides APIs to list all jobs in JSON format, as well as add or re
 None
 
 **Response:**
-```json
-[
-  {
-    "job_name": "job1",
-    "ip_address": "11.111.111.111"
-  },
-  {
-    "job_name": "job2",
-    "ip_address": "22.222.222.222"
-  }
-]
-```
+
+  - Success (200):
+
+    ```json
+    {
+      "status": "success",
+      "message": "Jobs retrieved successfully",
+      "data": [
+        {
+          "job_name": "job1",
+          "static_configs": [
+            {
+              "targets": ["11.111.111.111:26", "11.111.111.111:27"]
+            }
+          ]
+        },
+        {
+          "job_name": "job2",
+          "static_configs": [
+            {
+              "targets": ["11.111.111.112:26", "11.111.111.112:27"]
+            }
+          ]
+        }
+      ]
+    }
+    ```
+
+  - Fail (500):
+
+    ```json
+    {
+      "status": "error",
+      "message": "Failed to load configuration",
+      "data": null
+    }
+    ```
 
 ### Add a Job
+
+
 
 **URL**: `/jobs`  
 **Method**: `POST`  
@@ -51,12 +78,73 @@ None
 ```
 
 **Response:**
-```json
-{
-  "status": "ok",
-  "message": "Job added successfully"
-}
-```
+
+  - Success (200):
+    ```json
+    {
+      "status": "success",
+      "message": "Job added successfully",
+      "data": {
+        "job_name": "newjob",
+        "static_configs": [
+          {
+            "targets": ["11.111.111.111:26", "11.111.111.111:27"]
+          }
+        ]
+      }
+    }
+
+    ```
+  - Fail (400):
+    ```json
+    {
+      "status": "error",
+      "message": "Invalid request body",
+      "data": null
+    }
+    ```
+
+  - Fail (409):
+    ```json
+    {
+      "status": "error",
+      "message": "Job name already exists",
+      "data": null
+    }
+    ```
+  - Fail (409):
+    ```json
+    {
+      "status": "error",
+      "message": "Job with this IP address already exists",
+      "data": null
+    }
+    ```
+  - Fail (500):
+    ```json
+    {
+      "status": "error",
+      "message": "Failed to load configuration",
+      "data": null
+    }
+    ```
+
+  - Fail (500):
+    ```json
+    {
+      "status": "error",
+      "message": "Failed to save configuration",
+      "data": null
+    }
+    ```
+  - Fail (500):
+    ```json
+    {
+      "status": "error",
+      "message": "docker die roy",
+      "data": null
+    }
+    ```
 
 ### Remove a Job
 
@@ -68,9 +156,46 @@ None
 none
 
 **Response:**
-```json
-{
-  "status": "ok",
-  "message": "Job removed successfully"
-}
-```
+  - Success (200):
+  ```json
+  {
+    "status": "success",
+    "message": "Job removed successfully",
+    "data": "job1"
+  }
+  ```
+
+  - Fail (404):
+  ```json
+  {
+    "status": "error",
+    "message": "Job not found",
+    "data": "null"
+  }
+  ```
+
+  - Fail (500):
+    ```json
+    {
+      "status": "error",
+      "message": "Failed to load configuration",
+      "data": null
+    }
+    ```
+
+  - Fail (500):
+    ```json
+    {
+      "status": "error",
+      "message": "Failed to save configuration",
+      "data": null
+    }
+    ```
+  - Fail (500):
+    ```json
+    {
+      "status": "error",
+      "message": "docker die roy",
+      "data": null
+    }
+    ```
