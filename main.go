@@ -1,18 +1,46 @@
 package main
 
 import (
+	"errors"
+	"fmt"
 	"log"
 	"os"
 	"os/exec"
+	"regexp"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
 
-func executeCommand(command string, args ...string) (string, error) {
-	cmd := exec.Command(command, args...)
-	output, err := cmd.CombinedOutput()
-	return string(output), err
+func executeCommand(s ...string) ([]byte, error) {
+	// Gen command and Remove duplicate whitespace from a command
+	space := regexp.MustCompile(`\s+`)
+	command := space.ReplaceAllString(fmt.Sprint(strings.Join(s[:], " ")), " ")
+	if len(command) == 0 {
+		return nil, nil
+	}
+	log.Printf("_run: %s", command)
+
+	str, err := exec.Command("bash", "-c", command).CombinedOutput()
+	if err != nil {
+		log.Print(err)
+		outStr := strings.Trim(string(str), "\n")
+		return nil, errors.New(outStr)
+	}
+	return str, err
+}
+
+func checkDockerStatus() (bool, error) {
+	const containerName = "prometheus_prometheus_1"
+	statusCommand := fmt.Sprintf("docker inspect -f '{{.State.Running}}' %s", containerName)
+	output, err := executeCommand(statusCommand)
+	if err != nil {
+		return false, err
+	}
+
+	status := strings.TrimSpace(string(output))
+	return status == "true", nil
 }
 
 func main() {

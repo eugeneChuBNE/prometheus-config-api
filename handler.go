@@ -1,6 +1,8 @@
 package main
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -27,14 +29,14 @@ func addJob(c *gin.Context) {
 	loadConfig()
 	var newJobRequest AddJobRequest
 	if err := c.BindJSON(&newJobRequest); err != nil {
-		jsonResponse(c, "error", err.Error(), nil)
+		c.JSON(http.StatusBadRequest, gin.H{"status": "error", "message": "Invalid request body", "data": nil})
 		return
 	}
 
 	// Check if the job name already exists
 	for _, job := range config.ScrapeConfigs {
 		if job.JobName == newJobRequest.JobName {
-			jsonResponse(c, "error", "job name already exists", nil)
+			c.JSON(http.StatusConflict, gin.H{"status": "error", "message": "Job name already exists", "data": nil})
 			return
 		}
 	}
@@ -44,7 +46,7 @@ func addJob(c *gin.Context) {
 		for _, staticConfig := range job.StaticConfigs {
 			for _, target := range staticConfig.Targets {
 				if target == newJobRequest.IPAddress+":26" || target == newJobRequest.IPAddress+":27" {
-					jsonResponse(c, "error", "job with this IP address already exists", nil)
+					c.JSON(http.StatusConflict, gin.H{"status": "error", "message": "Job with this IP address already exists", "data": nil})
 					return
 				}
 			}
@@ -65,10 +67,25 @@ func addJob(c *gin.Context) {
 	}
 
 	config.ScrapeConfigs = append(config.ScrapeConfigs, newScrapeConfig)
-
 	saveConfig()
-	executeCommand("docker container restart prometheus_prometheus_1")
-	jsonResponse(c, "success", "job added successfully", newScrapeConfig)
+
+	_, err := executeCommand("/usr/bin/docker container restart prometheus_prometheus_1")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": err.Error(), "data": nil})
+		return
+	}
+
+	isActive, err := checkDockerStatus()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": err.Error(), "data": nil})
+		return
+	}
+
+	if isActive {
+		c.JSON(http.StatusOK, gin.H{"status": "success", "message": "Job added successfully", "data": newScrapeConfig})
+	} else {
+		c.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": "docker die roy", "data": nil})
+	}
 }
 
 func removeJob(c *gin.Context) {
@@ -79,10 +96,26 @@ func removeJob(c *gin.Context) {
 			// Remove the job from the list
 			config.ScrapeConfigs = append(config.ScrapeConfigs[:i], config.ScrapeConfigs[i+1:]...)
 			saveConfig()
-			executeCommand("docker container restart prometheus_prometheus_1")
-			jsonResponse(c, "success", "job removed successfully", jobName)
+
+			_, err := executeCommand("docker container restart prometheus_prometheus_1")
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": err.Error(), "data": nil})
+				return
+			}
+
+			isActive, err := checkDockerStatus()
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": err.Error(), "data": nil})
+				return
+			}
+
+			if isActive {
+				c.JSON(http.StatusOK, gin.H{"status": "success", "message": "Job removed successfully", "data": jobName})
+			} else {
+				c.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": "docker die roy", "data": nil})
+			}
 			return
 		}
 	}
-	jsonResponse(c, "error", "job not found", nil)
+	c.JSON(http.StatusNotFound, gin.H{"status": "error", "message": "Job not found", "data": nil})
 }
