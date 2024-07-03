@@ -4,7 +4,6 @@
 
 - [Features](#features)
 - [API Endpoints](#api-endpoints)
-- [Example curls](#example-curls)
 
 ## Features
 
@@ -61,8 +60,6 @@ None
     ```
 
 ### Add a Job
-
-
 
 **URL**: `/jobs`  
 **Method**: `POST`  
@@ -196,6 +193,67 @@ none
     {
       "status": "error",
       "message": "docker die roy",
+      "data": null
+    }
+    ```
+
+### Search Job by IP Address
+
+**URL**: `/jobs/search`  
+**Method**: `GET`  
+**Description**: Searches for a job by IP address.
+
+**Request:**
+Query parameter: `ip` (string) - The IP address to search for. An example below:
+
+```bash
+/jobs/search?ip=11.111.111.111
+```
+
+
+**Response:**
+
+  - Success (200):
+    ```json
+    {
+      "status": "success",
+      "message": "Job(s) retrieved successfully",
+      "data": [
+        {
+          "job_name": "job1",
+          "static_configs": [
+            {
+              "targets": ["11.111.111.111:26", "11.111.111.111:27"]
+            }
+          ]
+        }
+      ]
+    }
+    ```
+
+  - Fail (400):
+    ```json
+    {
+      "status": "error",
+      "message": "IP address is required",
+      "data": null
+    }
+    ```
+
+  - Fail (404):
+    ```json
+    {
+      "status": "error",
+      "message": "No job found with the specified IP address",
+      "data": null
+    }
+    ```
+
+  - Fail (500):
+    ```json
+    {
+      "status": "error",
+      "message": "Failed to load configuration",
       "data": null
     }
     ```
