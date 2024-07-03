@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -133,4 +134,39 @@ func removeJob(c *gin.Context) {
 		}
 	}
 	c.JSON(http.StatusNotFound, gin.H{"status": "error", "message": "Job not found", "data": nil})
+}
+
+func searchJobByIP(c *gin.Context) {
+	ipAddress := c.Query("ip")
+	if ipAddress == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"status": "error", "message": "IP address is required", "data": nil})
+		return
+	}
+
+	if err := loadConfig(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": "Failed to load configuration", "data": nil})
+		return
+	}
+
+	var foundJobs []Job
+	for _, job := range config.ScrapeConfigs {
+		for _, staticConfig := range job.StaticConfigs {
+			for _, target := range staticConfig.Targets {
+				if strings.Contains(target, ipAddress) {
+					foundJobs = append(foundJobs, Job{
+						JobName:       job.JobName,
+						StaticConfigs: job.StaticConfigs,
+					})
+					break
+				}
+			}
+		}
+	}
+
+	if len(foundJobs) == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"status": "error", "message": "No job found with the specified IP address", "data": nil})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "success", "message": "Job(s) retrieved successfully", "data": foundJobs})
 }

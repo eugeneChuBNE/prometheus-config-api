@@ -62,6 +62,7 @@ func main() {
 	router.GET("/jobs", listJobs)
 	router.POST("/jobs", addJob)
 	router.DELETE("/jobs/:job_name", removeJob)
+	router.GET("/jobs/search", searchJobByIP)
 
 	// Load the Prometheus configuration from the YAML file
 	loadConfig()
