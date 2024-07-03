@@ -63,7 +63,7 @@ None
 
 **URL**: `/jobs`  
 **Method**: `POST`  
-**Description**: Adds a new job. Requires job_name and ip_address in the request body.
+**Description**: Adds a new job.If a job with the same job_name or ip_address already exists, it will be replaced with the new one. Requires `job_name` and `ip_address` in the request body.
 
 **Request:**
 ```json
@@ -97,23 +97,6 @@ None
     {
       "status": "error",
       "message": "Invalid request body",
-      "data": null
-    }
-    ```
-
-  - Fail (409):
-    ```json
-    {
-      "status": "error",
-      "message": "Job name already exists",
-      "data": null
-    }
-    ```
-  - Fail (409):
-    ```json
-    {
-      "status": "error",
-      "message": "Job with this IP address already exists",
       "data": null
     }
     ```

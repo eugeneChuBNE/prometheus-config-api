@@ -40,21 +40,18 @@ func addJob(c *gin.Context) {
 		return
 	}
 
-	// Check if the job name already exists
-	for _, job := range config.ScrapeConfigs {
+	// Remove existing job with the same job name or IP address
+	for i := len(config.ScrapeConfigs) - 1; i >= 0; i-- {
+		job := config.ScrapeConfigs[i]
 		if job.JobName == newJobRequest.JobName {
-			c.JSON(http.StatusConflict, gin.H{"status": "error", "message": "Job name already exists", "data": nil})
-			return
+			config.ScrapeConfigs = append(config.ScrapeConfigs[:i], config.ScrapeConfigs[i+1:]...)
+			continue
 		}
-	}
-
-	// Check if the IP address already exists in any job
-	for _, job := range config.ScrapeConfigs {
 		for _, staticConfig := range job.StaticConfigs {
 			for _, target := range staticConfig.Targets {
 				if target == newJobRequest.IPAddress+":26" || target == newJobRequest.IPAddress+":27" {
-					c.JSON(http.StatusConflict, gin.H{"status": "error", "message": "Job with this IP address already exists", "data": nil})
-					return
+					config.ScrapeConfigs = append(config.ScrapeConfigs[:i], config.ScrapeConfigs[i+1:]...)
+					break
 				}
 			}
 		}
