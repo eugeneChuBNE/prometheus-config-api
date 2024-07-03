@@ -19,3 +19,9 @@ func jsonResponse(c *gin.Context, status string, message string, data interface{
 		Data:    data,
 	})
 }
+
+// SetUpRouter sets up the Gin router for testing.
+func SetUpRouter() *gin.Engine {
+	router := gin.Default()
+	return router
+}

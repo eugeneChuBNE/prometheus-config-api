@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -76,23 +77,26 @@ func addJob(c *gin.Context) {
 		return
 	}
 
-	_, err := executeCommand("/usr/bin/docker container restart prometheus_prometheus_1")
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": err.Error(), "data": nil})
-		return
+	if os.Getenv("TEST_MODE") != "true" {
+		_, err := executeCommand("/usr/bin/docker container restart prometheus_prometheus_1")
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": err.Error(), "data": nil})
+			return
+		}
+
+		isActive, err := checkDockerStatus()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": err.Error(), "data": nil})
+			return
+		}
+
+		if !isActive {
+			c.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": "Docker container is not active", "data": nil})
+			return
+		}
 	}
 
-	isActive, err := checkDockerStatus()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": err.Error(), "data": nil})
-		return
-	}
-
-	if isActive {
-		c.JSON(http.StatusOK, gin.H{"status": "success", "message": "Job added successfully", "data": newScrapeConfig})
-	} else {
-		c.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": "docker die roy", "data": nil})
-	}
+	c.JSON(http.StatusOK, gin.H{"status": "success", "message": "Job added successfully", "data": newScrapeConfig})
 }
 
 func removeJob(c *gin.Context) {
@@ -110,23 +114,26 @@ func removeJob(c *gin.Context) {
 				return
 			}
 
-			_, err := executeCommand("docker container restart prometheus_prometheus_1")
-			if err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": err.Error(), "data": nil})
-				return
+			if os.Getenv("TEST_MODE") != "true" {
+				_, err := executeCommand("docker container restart prometheus_prometheus_1")
+				if err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": err.Error(), "data": nil})
+					return
+				}
+
+				isActive, err := checkDockerStatus()
+				if err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": err.Error(), "data": nil})
+					return
+				}
+
+				if !isActive {
+					c.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": "Docker container is not active", "data": nil})
+					return
+				}
 			}
 
-			isActive, err := checkDockerStatus()
-			if err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": err.Error(), "data": nil})
-				return
-			}
-
-			if isActive {
-				c.JSON(http.StatusOK, gin.H{"status": "success", "message": "Job removed successfully", "data": jobName})
-			} else {
-				c.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": "docker die roy", "data": nil})
-			}
+			c.JSON(http.StatusOK, gin.H{"status": "success", "message": "Job removed successfully", "data": jobName})
 			return
 		}
 	}
