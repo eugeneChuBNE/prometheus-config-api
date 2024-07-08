@@ -32,8 +32,7 @@ func executeCommand(s ...string) ([]byte, error) {
 }
 
 func checkDockerStatus() (bool, error) {
-	const containerName = "prometheus_prometheus_1"
-	statusCommand := fmt.Sprintf("docker inspect -f '{{.State.Running}}' %s", containerName)
+	statusCommand := `/usr/bin/docker inspect -f '{{.State.Running}}' $(/usr/bin/docker ps --filter "label=app=prometheus" --format "{{.ID}}")`
 	output, err := executeCommand(statusCommand)
 	if err != nil {
 		return false, err

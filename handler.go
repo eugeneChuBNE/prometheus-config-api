@@ -78,7 +78,7 @@ func addJob(c *gin.Context) {
 	}
 
 	if os.Getenv("TEST_MODE") != "true" {
-		_, err := executeCommand("/usr/bin/docker container restart prometheus_prometheus_1")
+		_, err := executeCommand("/usr/bin/docker restart $(/usr/bin/docker ps --filter \"label=app=prometheus\" --format \"{{.ID}}\")")
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": err.Error(), "data": nil})
 			return
@@ -115,7 +115,7 @@ func removeJob(c *gin.Context) {
 			}
 
 			if os.Getenv("TEST_MODE") != "true" {
-				_, err := executeCommand("docker container restart prometheus_prometheus_1")
+				_, err := executeCommand("/usr/bin/docker restart $(/usr/bin/docker ps --filter \"label=app=prometheus\" --format \"{{.ID}}\")")
 				if err != nil {
 					c.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": err.Error(), "data": nil})
 					return
