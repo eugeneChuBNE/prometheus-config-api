@@ -32,6 +32,7 @@ func executeCommand(s ...string) ([]byte, error) {
 }
 
 func checkDockerStatus() (bool, error) {
+	//not really sure abt this but just try it....
 	statusCommand := `/usr/bin/docker inspect -f '{{.State.Running}}' $(/usr/bin/docker ps --filter "label=app=prometheus" --format "{{.ID}}")`
 	output, err := executeCommand(statusCommand)
 	if err != nil {
